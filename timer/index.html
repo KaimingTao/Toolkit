@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Countdown Timer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: #f4f7f5;
+        color: #18211f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      main {
+        width: min(100%, 520px);
+        padding: 28px;
+        border: 1px solid #d9e1dc;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 18px 50px rgb(24 33 31 / 10%);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.6rem;
+        line-height: 1.2;
+      }
+
+      .subtitle {
+        margin: 0 0 24px;
+        color: #64716d;
+        line-height: 1.5;
+      }
+
+      .time-inputs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: #42504c;
+        font-size: 0.9rem;
+        font-weight: 650;
+      }
+
+      input {
+        width: 100%;
+        min-width: 0;
+        height: 46px;
+        border: 1px solid #c7d1cc;
+        border-radius: 6px;
+        padding: 0 12px;
+        font: inherit;
+        font-size: 1rem;
+        background: #fbfcfb;
+        color: #18211f;
+      }
+
+      input:focus {
+        outline: 3px solid #a8ded1;
+        border-color: #287a6a;
+      }
+
+      .display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 124px;
+        margin: 22px 0;
+        border: 1px solid #dce5e1;
+        border-radius: 8px;
+        background: #eef6f3;
+        font-variant-numeric: tabular-nums;
+        font-size: clamp(2.7rem, 10vw, 4.8rem);
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .message {
+        display: none;
+        margin: -8px 0 18px;
+        padding: 14px 16px;
+        border: 1px solid #f0c28a;
+        border-radius: 8px;
+        background: #fff4df;
+        color: #7b3a07;
+        font-size: 1.05rem;
+        font-weight: 750;
+        text-align: center;
+      }
+
+      .message.show {
+        display: block;
+      }
+
+      .controls,
+      .permission-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+
+      .permission-row {
+        grid-template-columns: 1fr;
+        margin-top: 10px;
+      }
+
+      button {
+        min-height: 44px;
+        border: 0;
+        border-radius: 6px;
+        padding: 0 14px;
+        font: inherit;
+        font-weight: 750;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .primary {
+        background: #287a6a;
+        color: #ffffff;
+      }
+
+      .secondary {
+        background: #dce9e5;
+        color: #1e332f;
+      }
+
+      .ghost {
+        background: #edf1ef;
+        color: #44524e;
+      }
+
+      .status {
+        min-height: 22px;
+        margin: 18px 0 0;
+        color: #596864;
+        line-height: 1.45;
+      }
+
+      .status.alert {
+        color: #9a3f15;
+        font-weight: 650;
+      }
+
+      @media (max-width: 460px) {
+        main {
+          padding: 22px;
+        }
+
+        .time-inputs,
+        .controls {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Countdown Timer</h1>
+      <p class="subtitle">Set a time, start the countdown, and get a browser notification when it reaches zero.</p>
+
+      <form id="timerForm">
+        <div class="time-inputs">
+          <label>
+            Hours
+            <input id="hours" type="number" min="0" max="99" step="1" value="0" inputmode="numeric">
+          </label>
+          <label>
+            Minutes
+            <input id="minutes" type="number" min="0" max="59" step="1" value="5" inputmode="numeric">
+          </label>
+          <label>
+            Seconds
+            <input id="seconds" type="number" min="0" max="59" step="1" value="0" inputmode="numeric">
+          </label>
+        </div>
+
+        <div class="display" id="display" aria-live="polite">05:00</div>
+        <div class="message" id="doneMessage" role="status" aria-live="assertive">Time is up.</div>
+
+        <div class="controls">
+          <button class="primary" id="startButton" type="submit">Start</button>
+          <button class="secondary" id="pauseButton" type="button" disabled>Pause</button>
+          <button class="ghost" id="resetButton" type="button">Reset</button>
+        </div>
+
+        <div class="permission-row">
+          <button class="secondary" id="permissionButton" type="button">Enable notification</button>
+        </div>
+
+        <p class="status" id="status">Notification status: checking...</p>
+      </form>
+    </main>
+
+    <script>
+      const form = document.querySelector("#timerForm");
+      const hoursInput = document.querySelector("#hours");
+      const minutesInput = document.querySelector("#minutes");
+      const secondsInput = document.querySelector("#seconds");
+      const display = document.querySelector("#display");
+      const doneMessage = document.querySelector("#doneMessage");
+      const statusText = document.querySelector("#status");
+      const startButton = document.querySelector("#startButton");
+      const pauseButton = document.querySelector("#pauseButton");
+      const resetButton = document.querySelector("#resetButton");
+      const permissionButton = document.querySelector("#permissionButton");
+
+      let totalSeconds = readInputSeconds();
+      let remainingSeconds = totalSeconds;
+      let intervalId = null;
+      let endAt = 0;
+
+      function clampNumber(value, min, max) {
+        const number = Number.parseInt(value, 10);
+        if (Number.isNaN(number)) return min;
+        return Math.min(Math.max(number, min), max);
+      }
+
+      function readInputSeconds() {
+        const hours = clampNumber(hoursInput.value, 0, 99);
+        const minutes = clampNumber(minutesInput.value, 0, 59);
+        const seconds = clampNumber(secondsInput.value, 0, 59);
+
+        hoursInput.value = hours;
+        minutesInput.value = minutes;
+        secondsInput.value = seconds;
+
+        return hours * 3600 + minutes * 60 + seconds;
+      }
+
+      function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainder = seconds % 60;
+        const mm = String(minutes).padStart(2, "0");
+        const ss = String(remainder).padStart(2, "0");
+
+        if (hours > 0) {
+          return `${String(hours).padStart(2, "0")}:${mm}:${ss}`;
+        }
+
+        return `${mm}:${ss}`;
+      }
+
+      function updateDisplay() {
+        display.textContent = formatTime(remainingSeconds);
+      }
+
+      function showDoneMessage() {
+        doneMessage.classList.add("show");
+      }
+
+      function hideDoneMessage() {
+        doneMessage.classList.remove("show");
+      }
+
+      function setRunning(isRunning) {
+        startButton.disabled = isRunning;
+        pauseButton.disabled = !isRunning;
+        hoursInput.disabled = isRunning;
+        minutesInput.disabled = isRunning;
+        secondsInput.disabled = isRunning;
+      }
+
+      function setStatus(message, isAlert = false) {
+        statusText.textContent = message;
+        statusText.classList.toggle("alert", isAlert);
+      }
+
+      function updatePermissionStatus() {
+        if (!("Notification" in window)) {
+          permissionButton.disabled = true;
+          setStatus("This browser does not support desktop notifications.", true);
+          return;
+        }
+
+        if (Notification.permission === "granted") {
+          permissionButton.disabled = true;
+          setStatus("Notifications are enabled. The final notification will be silent.");
+          return;
+        }
+
+        if (Notification.permission === "denied") {
+          permissionButton.disabled = true;
+          setStatus("Notifications are blocked. Enable them in browser or macOS settings, then reload.", true);
+          return;
+        }
+
+        permissionButton.disabled = false;
+        setStatus("Click Enable notification first. Your browser should show a permission prompt.");
+      }
+
+      async function ensureNotificationPermission() {
+        if (!("Notification" in window)) {
+          setStatus("This browser does not support desktop notifications.", true);
+          return false;
+        }
+
+        if (Notification.permission === "granted") {
+          return true;
+        }
+
+        if (Notification.permission === "denied") {
+          setStatus("Notifications are blocked in your browser settings.", true);
+          return false;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          updatePermissionStatus();
+          setStatus("Notification permission was not granted.", true);
+          return false;
+        }
+
+        updatePermissionStatus();
+        return true;
+      }
+
+      function sendDoneNotification() {
+        showDoneMessage();
+
+        if (!("Notification" in window) || Notification.permission !== "granted") {
+          setStatus("Time is up. Notification permission is not available.", true);
+          return;
+        }
+
+        new Notification("Countdown finished", {
+          body: "Your timer reached zero.",
+          silent: true
+        });
+
+        setStatus("Time is up. A silent notification was sent.", true);
+      }
+
+      function stopTimer() {
+        window.clearInterval(intervalId);
+        intervalId = null;
+        setRunning(false);
+      }
+
+      function tick() {
+        remainingSeconds = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
+        updateDisplay();
+
+        if (remainingSeconds === 0) {
+          stopTimer();
+          sendDoneNotification();
+        }
+      }
+
+      async function startTimer(event) {
+        event.preventDefault();
+
+        if (intervalId !== null) return;
+
+        if (remainingSeconds <= 0 || remainingSeconds === totalSeconds) {
+          totalSeconds = readInputSeconds();
+          remainingSeconds = totalSeconds;
+        }
+
+        if (remainingSeconds <= 0) {
+          setStatus("Set a time greater than zero.", true);
+          updateDisplay();
+          return;
+        }
+
+        const canNotify = await ensureNotificationPermission();
+        if (!canNotify) return;
+
+        hideDoneMessage();
+        setStatus("Countdown running. The notification at zero will be silent.");
+        setRunning(true);
+        endAt = Date.now() + remainingSeconds * 1000;
+        tick();
+        intervalId = window.setInterval(tick, 250);
+      }
+
+      function pauseTimer() {
+        if (intervalId === null) return;
+        stopTimer();
+        setStatus("Countdown paused.");
+      }
+
+      function resetTimer() {
+        window.clearInterval(intervalId);
+        intervalId = null;
+        totalSeconds = readInputSeconds();
+        remainingSeconds = totalSeconds;
+        setRunning(false);
+        updateDisplay();
+        hideDoneMessage();
+        setStatus("Timer reset. Notifications are silent.");
+      }
+
+      [hoursInput, minutesInput, secondsInput].forEach((input) => {
+        input.addEventListener("input", () => {
+          if (intervalId !== null) return;
+          totalSeconds = readInputSeconds();
+          remainingSeconds = totalSeconds;
+          updateDisplay();
+          hideDoneMessage();
+        });
+      });
+
+      form.addEventListener("submit", startTimer);
+      pauseButton.addEventListener("click", pauseTimer);
+      resetButton.addEventListener("click", resetTimer);
+      permissionButton.addEventListener("click", ensureNotificationPermission);
+
+      updateDisplay();
+      updatePermissionStatus();
+    </script>
+  </body>
+</html>
