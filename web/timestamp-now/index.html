@@ -3,20 +3,244 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f7f7f5">
   <title>Right Now</title>
   <style>
     :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
     * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #ffffff; color: #181818; }
-    main { width: min(92vw, 760px); padding: clamp(28px, 6vw, 60px); text-align: center; }
-    .eyebrow { margin: 0 0 20px; color: #555555; font-size: .78rem; font-weight: 750; letter-spacing: .18em; text-transform: uppercase; }
-    time { display: block; font-variant-numeric: tabular-nums; font-size: clamp(2rem, 7vw, 4.8rem); font-weight: 760; letter-spacing: -.045em; line-height: 1.05; text-wrap: nowrap; }
-    .meta { margin: 18px 0 30px; color: #666666; font-size: .95rem; }
-    button { min-width: 180px; border: 0; border-radius: 8px; padding: 14px 22px; background: #7f1d1d; color: #ffffff; font: inherit; font-weight: 750; cursor: pointer; }
-    button:hover { background: #641515; }
-    button:focus-visible { outline: 3px solid #dc8d8d; outline-offset: 4px; }
-    @media (max-width: 480px) { time { font-size: clamp(1.7rem, 8.2vw, 2.3rem); } }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f7f7f5;
+      color: #171715;
+    }
+    main {
+      width: min(100%, 820px);
+      padding: clamp(36px, 8vw, 80px) 0;
+      text-align: center;
+    }
+    .eyebrow {
+      margin: 0 0 28px;
+      color: #777771;
+      font-size: .72rem;
+      font-weight: 650;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    time {
+      display: block;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(2rem, 7vw, 4.75rem);
+      font-weight: 520;
+      letter-spacing: -.055em;
+      line-height: 1;
+      text-wrap: nowrap;
+    }
+    .digit,
+    .separator { display: inline; }
+    .meta {
+      margin: 22px 0 38px;
+      color: #85857e;
+      font-size: .84rem;
+      letter-spacing: .03em;
+    }
+    button {
+      border: 1px solid #d7d7d1;
+      border-radius: 999px;
+      padding: 11px 18px;
+      background: transparent;
+      color: #353532;
+      font: inherit;
+      font-size: .84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+    }
+    button:hover { border-color: #a9a9a2; background: #efefec; }
+    button:active { transform: translateY(1px); }
+    button:focus-visible { outline: 2px solid #4d4d48; outline-offset: 4px; }
+    .styles {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 42px 0 0;
+      padding: 0;
+      border: 0;
+    }
+    .styles legend {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .style-option {
+      padding: 8px 12px;
+      border-color: transparent;
+      font-size: .72rem;
+      font-weight: 550;
+    }
+    .style-option[aria-pressed="true"] { border-color: #c4c4be; background: #ededE9; }
+
+    body[data-style="airport"] {
+      background: #171817;
+      color: #f1efe5;
+    }
+    body[data-style="airport"] .eyebrow,
+    body[data-style="airport"] .meta { color: #8d9189; }
+    body[data-style="airport"] time {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(2px, .45vw, 6px);
+      font-family: "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
+      perspective: 1100px;
+    }
+    body[data-style="airport"] .digit,
+    body[data-style="airport"] .separator:not(.space) {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: clamp(18px, 4.25vw, 46px);
+      height: clamp(32px, 7.2vw, 76px);
+      overflow: hidden;
+      border: 1px solid #080908;
+      border-radius: 3px;
+      background:
+        linear-gradient(to bottom, #30322f 0 49%, #171817 49% 51%, #292b28 51% 100%);
+      box-shadow:
+        inset 0 1px 0 #484b46,
+        inset 0 -1px 0 #111,
+        0 5px 9px rgb(0 0 0 / 45%);
+      color: #f3f1df;
+      font-size: clamp(1.25rem, 4.3vw, 3.25rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -.03em;
+      text-shadow: 0 1px 1px #000;
+      transform-style: preserve-3d;
+    }
+    body[data-style="airport"] .digit::after,
+    body[data-style="airport"] .separator:not(.space)::after {
+      content: "";
+      position: absolute;
+      inset: calc(50% - 1px) 0 auto;
+      z-index: 2;
+      height: 2px;
+      background: #090a09;
+      box-shadow: 0 -1px 0 rgb(255 255 255 / 8%), 0 1px 0 rgb(0 0 0 / 70%);
+      pointer-events: none;
+    }
+    body[data-style="airport"] .separator.space {
+      display: inline-block;
+      width: clamp(5px, 1.25vw, 16px);
+    }
+    body[data-style="airport"] .cathode { display: inline-block; }
+    body[data-style="airport"] .flipping {
+      animation: split-flap 520ms cubic-bezier(.2, .75, .25, 1) both;
+      animation-delay: var(--flip-delay, 0ms);
+    }
+    @keyframes split-flap {
+      0% { transform: rotateX(-92deg); filter: brightness(.35); }
+      45% { transform: rotateX(17deg); filter: brightness(1.18); }
+      72% { transform: rotateX(-6deg); }
+      100% { transform: rotateX(0); filter: brightness(1); }
+    }
+    body[data-style="airport"] button { border-color: #454844; color: #d5d6cf; }
+    body[data-style="airport"] button:hover { border-color: #6b7069; background: #242624; }
+    body[data-style="airport"] .style-option[aria-pressed="true"] { border-color: #686c66; background: #2a2c2a; }
+
+    body[data-style="nixie"] {
+      background: radial-gradient(circle at 50% 42%, #211710 0, #0d0a08 48%, #050403 100%);
+      color: #ffd4a0;
+    }
+    body[data-style="nixie"] .eyebrow,
+    body[data-style="nixie"] .meta { color: #8c6850; }
+    body[data-style="nixie"] time {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(2px, .45vw, 7px);
+      padding: clamp(18px, 4vw, 38px) clamp(8px, 2vw, 22px);
+      border: 1px solid #39261a;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #17100c, #090604);
+      box-shadow: inset 0 1px 0 #4a3020, inset 0 -18px 45px #000, 0 24px 65px rgb(0 0 0 / 45%);
+      font-family: "Courier New", ui-monospace, monospace;
+      perspective: 900px;
+    }
+    body[data-style="nixie"] .digit {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      width: clamp(18px, 4.15vw, 45px);
+      height: clamp(38px, 8.3vw, 88px);
+      overflow: hidden;
+      border: 1px solid #68432d;
+      border-radius: 48% 48% 18% 18% / 28% 28% 12% 12%;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 4px, rgb(131 91 65 / 11%) 4px 5px),
+        repeating-linear-gradient(90deg, transparent 0 5px, rgb(131 91 65 / 9%) 5px 6px),
+        radial-gradient(ellipse at 50% 52%, #24130b 0, #100a07 58%, #050403 100%);
+      box-shadow:
+        inset 3px 0 7px rgb(255 211 169 / 8%),
+        inset -4px 0 8px rgb(0 0 0 / 75%),
+        inset 0 -7px 12px #000,
+        0 4px 8px rgb(0 0 0 / 55%);
+      color: #ff9a45;
+      font-size: clamp(1.35rem, 4.5vw, 3.25rem);
+      font-weight: 400;
+      line-height: 1;
+      letter-spacing: 0;
+      text-shadow:
+        0 0 2px #fff0c0,
+        0 0 5px #ff8a24,
+        0 0 12px #ff5a00,
+        0 0 22px rgb(255 68 0 / 75%);
+      transform: rotateX(-2deg);
+    }
+    body[data-style="nixie"] .digit::before {
+      content: "8";
+      position: absolute;
+      z-index: 0;
+      color: #5d3b2a;
+      opacity: .22;
+      text-shadow: none;
+      transform: scale(.94) translateY(1px);
+    }
+    body[data-style="nixie"] .digit::after {
+      content: "";
+      position: absolute;
+      inset: 3px 4px 48% 4px;
+      z-index: 2;
+      border-radius: 50% 50% 35% 35%;
+      background: linear-gradient(105deg, rgb(255 255 255 / 19%), transparent 38%);
+      pointer-events: none;
+    }
+    body[data-style="nixie"] .cathode {
+      position: relative;
+      z-index: 1;
+      transform: scaleX(.86);
+    }
+    body[data-style="nixie"] .separator {
+      display: inline-grid;
+      place-items: center;
+      min-width: clamp(6px, 1.15vw, 14px);
+      color: #d66022;
+      font-size: clamp(1rem, 2.8vw, 2rem);
+      text-shadow: 0 0 7px #d84d0b;
+      opacity: .82;
+    }
+    body[data-style="nixie"] button { border-color: #513321; color: #bd8965; }
+    body[data-style="nixie"] button:hover { border-color: #85502e; background: #1d110b; }
+    body[data-style="nixie"] .style-option[aria-pressed="true"] { border-color: #8a512d; background: #25140c; color: #e9a06c; }
+    @media (max-width: 560px) {
+      time { font-size: clamp(1.55rem, 8vw, 2.4rem); letter-spacing: -.04em; }
+    }
   </style>
 </head>
 <body>
@@ -25,11 +249,40 @@
     <time id="clock" aria-live="off">0000-00-00 00-00-00</time>
     <p class="meta" id="zone"></p>
     <button id="copy" type="button" aria-describedby="clock">Copy current time</button>
+    <fieldset class="styles">
+      <legend>Display style</legend>
+      <button class="style-option" type="button" data-value="minimal" aria-pressed="true">Minimal</button>
+      <button class="style-option" type="button" data-value="airport" aria-pressed="false">Airport</button>
+      <button class="style-option" type="button" data-value="nixie" aria-pressed="false">Nixie</button>
+    </fieldset>
   </main>
   <script>
     const clock = document.querySelector('#clock');
     const zone = document.querySelector('#zone');
     const copyButton = document.querySelector('#copy');
+    const styleButtons = document.querySelectorAll('.style-option');
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+
+    const styles = {
+      minimal: '#f7f7f5',
+      airport: '#171817',
+      nixie: '#0d0a08'
+    };
+
+    const setStyle = style => {
+      const selected = styles[style] ? style : 'minimal';
+      document.body.dataset.style = selected;
+      themeColor.content = styles[selected];
+      styleButtons.forEach(button => {
+        button.setAttribute('aria-pressed', String(button.dataset.value === selected));
+      });
+      localStorage.setItem('timestamp-style', selected);
+    };
+
+    styleButtons.forEach(button => {
+      button.addEventListener('click', () => setStyle(button.dataset.value));
+    });
+    setStyle(localStorage.getItem('timestamp-style') || 'minimal');
 
     const pad = value => String(value).padStart(2, '0');
     const currentTimestamp = () => {
@@ -37,7 +290,45 @@
       return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
     };
 
-    const tick = () => { clock.textContent = currentTimestamp(); };
+    const renderTimestamp = value => {
+      if (clock.dataset.value === value) return;
+
+      if (clock.children.length !== value.length) {
+        const fragment = document.createDocumentFragment();
+        for (let index = 0; index < value.length; index += 1) {
+          const part = document.createElement('span');
+          const character = value[index];
+          part.className = /\d/.test(character) ? 'digit' : 'separator';
+          if (character === ' ') part.classList.add('space');
+          part.setAttribute('aria-hidden', 'true');
+          part.style.setProperty('--flip-delay', `${Math.min(index * 18, 180)}ms`);
+
+          const cathode = document.createElement('span');
+          cathode.className = 'cathode';
+          part.append(cathode);
+          fragment.append(part);
+        }
+        clock.replaceChildren(fragment);
+      }
+
+      [...clock.children].forEach((part, index) => {
+        const character = value[index];
+        const cathode = part.querySelector('.cathode');
+        if (cathode.textContent === character) return;
+
+        cathode.textContent = character;
+        part.className = /\d/.test(character) ? 'digit' : 'separator';
+        if (character === ' ') part.classList.add('space');
+        part.classList.remove('flipping');
+        void part.offsetWidth;
+        part.classList.add('flipping');
+      });
+
+      clock.dataset.value = value;
+      clock.setAttribute('aria-label', value);
+    };
+
+    const tick = () => { renderTimestamp(currentTimestamp()); };
     zone.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone.replaceAll('_', ' ');
     tick();
     setInterval(tick, 250);

@@ -9,6 +9,8 @@ A minimal browser tool for viewing and copying the current local timestamp.
 - Updates automatically as time passes.
 - Copies the current timestamp to the clipboard with one click.
 - Produces a filename-friendly value without colons.
+- Includes Minimal, Airport Flip Board, and Nixie display styles.
+- Remembers the selected display style between visits.
 
 ## Use it
 
